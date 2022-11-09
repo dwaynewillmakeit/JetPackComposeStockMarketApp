@@ -1,5 +1,6 @@
 package com.dwaynewillmakeit.stockmarketapp.ui.company_listings
 
+import android.util.Log
 import android.view.View
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,10 @@ class CompanyListViewModel @Inject constructor(private val repository: StockRepo
     var state by mutableStateOf(CompanyListingsState())
 
     private var searchJob: Job? = null;
+
+    init {
+        getCompanyListings()
+    }
 
     fun onEvent(event: CompanyListingEvent) {
         when (event) {
@@ -48,24 +53,25 @@ class CompanyListViewModel @Inject constructor(private val repository: StockRepo
     ) {
         viewModelScope.launch {
             repository.getCompanyListings(fetchFromRemote, query).collect { result ->
-                {
+
                     when (result) {
                         is Resource.Success -> {
                             result.data?.let { listings ->
-                                {
+
                                     state = state.copy(
                                         companies = listings
                                     )
-                                }
+                                
                             }
                         }
                         is Resource.Error -> {
+                            Log.i("TAG", "getCompanyListings: "+result.message)
                         }
                         is Resource.Loading -> {
                             state = state.copy(isLoading = result.isLoading)
                         }
                     }
-                }
+
             }
         }
     }
